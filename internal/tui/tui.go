@@ -20,7 +20,8 @@ func New(c *core.Core) tea.Model {
 
 func initialModel(c *core.Core) model {
 	return model{
-		core: c,
-		ctx:  context.Background(),
+		core:    c,
+		ctx:     context.Background(),
+		spinner: newSpinner(),
 	}
 }

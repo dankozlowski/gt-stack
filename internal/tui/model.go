@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dankoz/gt-stacks/internal/core"
@@ -23,6 +24,9 @@ type model struct {
 	quit     bool
 	branches []string // flattened, in display order
 	cursor   int
+	op       string // "" | "submit" | "restack" | "sync"
+	opMsg    string
+	spinner  spinner.Model
 }
 
 type stackLoaded struct {
@@ -34,7 +38,9 @@ type loadErr struct{ err error }
 
 type checkedOut struct{ branch string }
 
-func (m model) Init() tea.Cmd { return loadStack(m.ctx, m.core) }
+func (m model) Init() tea.Cmd {
+	return tea.Batch(loadStack(m.ctx, m.core), m.spinner.Tick)
+}
 
 func loadStack(ctx context.Context, c *core.Core) tea.Cmd {
 	return func() tea.Msg {
@@ -77,7 +83,28 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.err = msg.err
 	case checkedOut:
 		m.current = msg.branch
+	case opFinished:
+		m.op = ""
+		if msg.err != nil {
+			m.err = msg.err
+		} else {
+			m.opMsg = msg.summary
+		}
+		// Reload stack after op (PR states may have changed).
+		return m, loadStack(m.ctx, m.core)
+	case spinner.TickMsg:
+		var cmd tea.Cmd
+		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
 	case tea.KeyMsg:
+		if m.op != "" {
+			// While an op is running, only allow quit.
+			if msg.String() == "q" || msg.String() == "ctrl+c" {
+				m.quit = true
+				return m, tea.Quit
+			}
+			return m, nil
+		}
 		switch msg.String() {
 		case "q", "ctrl+c":
 			m.quit = true
@@ -99,6 +126,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 			return m, doCheckout(m.ctx, m.core, target)
+		case "s":
+			m.op = "submit"
+			m.opMsg = ""
+			return m, runSubmit(m.ctx, m.core)
+		case "r":
+			m.op = "restack"
+			m.opMsg = ""
+			return m, runRestack(m.ctx, m.core)
+		case "y":
+			m.op = "sync"
+			m.opMsg = ""
+			return m, runSync(m.ctx, m.core)
 		}
 	}
 	return m, nil
@@ -112,6 +151,10 @@ func (m model) View() string {
 	if m.err != nil {
 		return border.Render(fmt.Sprintf("error: %v\n\nq quit", m.err))
 	}
+	if m.op != "" {
+		body := m.spinner.View() + " " + m.op + "…"
+		return border.Render(body + "\n\n[q] cancel")
+	}
 	if m.stack == nil {
 		return border.Render("loading…")
 	}
@@ -123,9 +166,13 @@ func (m model) View() string {
 			rows[i] = "  " + line
 		}
 	}
+	out := strings.Join(rows, "\n")
+	if m.opMsg != "" {
+		out += "\n\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("78")).Render(m.opMsg)
+	}
 	footer := lipgloss.NewStyle().Foreground(lipgloss.Color("245")).
-		Render("[↑↓] nav  [enter] checkout  [s] submit  [r] restack  [c] create  [?] help  [q] quit")
-	return border.Render(strings.Join(rows, "\n") + "\n" + footer)
+		Render("[↑↓] nav  [enter] checkout  [s] submit  [r] restack  [y] sync  [c] create  [?] help  [q] quit")
+	return border.Render(out + "\n" + footer)
 }
 
 func splitLines(s string) []string {
