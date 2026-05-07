@@ -1,0 +1,53 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: gts
+    main: ./cmd/gts
+    binary: gts
+    env:
+      - CGO_ENABLED=0
+    goos: [darwin, linux]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.ShortCommit}}
+
+archives:
+  - id: gts
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}_
+      {{- .Arch }}
+    format: tar.gz
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+
+brews:
+  - repository:
+      owner: dankoz
+      name: homebrew-gts
+    homepage: https://github.com/dankoz/gt-stacks
+    description: A Graphite-style CLI for managing stacked git PRs
+    license: MIT
+    test: |
+      system "#{bin}/gts version"
+    install: |
+      bin.install "gts"
