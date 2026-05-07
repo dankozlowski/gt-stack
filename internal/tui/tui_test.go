@@ -38,3 +38,16 @@ func TestTUI_RendersStackOnLoad(t *testing.T) {
 	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
 	tm.WaitFinished(t)
 }
+
+func TestTUI_DownArrowAndQuit(t *testing.T) {
+	m := New(newTestCore(t))
+	tm := teatest.NewTestModel(t, m, teatest.WithInitialTermSize(80, 24))
+
+	teatest.WaitFor(t, tm.Output(),
+		func(out []byte) bool { return bytes.Contains(out, []byte("feat/a")) },
+		teatest.WithDuration(2*time.Second),
+	)
+	tm.Send(tea.KeyMsg{Type: tea.KeyDown})
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
+	tm.WaitFinished(t)
+}
