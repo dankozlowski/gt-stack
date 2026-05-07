@@ -83,3 +83,25 @@ func TestRenderBlock_BranchWithoutPR(t *testing.T) {
 		t.Errorf("expected '(no PR yet)' for feat/b\ngot:\n%s", got)
 	}
 }
+
+func TestUpdateBody_NoChangeReturnsFalse(t *testing.T) {
+	body := "Hi\n\n<!-- gts:stack-start -->\nSAME\n<!-- gts:stack-end -->\n"
+	out, changed := UpdateBody(body, "SAME")
+	if changed {
+		t.Errorf("expected no change for identical block")
+	}
+	if out != body {
+		t.Errorf("body should be unchanged when no change reported")
+	}
+}
+
+func TestUpdateBody_ChangeReturnsTrue(t *testing.T) {
+	body := "<!-- gts:stack-start -->\nOLD\n<!-- gts:stack-end -->"
+	out, changed := UpdateBody(body, "NEW")
+	if !changed {
+		t.Errorf("expected change")
+	}
+	if !strings.Contains(out, "NEW") {
+		t.Errorf("new body missing NEW: %q", out)
+	}
+}

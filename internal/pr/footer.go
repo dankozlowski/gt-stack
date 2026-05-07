@@ -44,3 +44,14 @@ func ReplaceOrAppend(body, block string) string {
 	}
 	return trimmed + "\n\n" + wrapped + "\n"
 }
+
+// UpdateBody returns the new body and whether the managed block changed.
+// When unchanged, callers should skip the gh API call (idempotency).
+func UpdateBody(currentBody, newBlock string) (string, bool) {
+	existing, present := ParseBlock(currentBody)
+	desired := newBlock + "\n"
+	if present && strings.TrimRight(existing, "\n")+"\n" == desired {
+		return currentBody, false
+	}
+	return ReplaceOrAppend(currentBody, newBlock), true
+}
