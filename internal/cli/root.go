@@ -34,4 +34,5 @@ func addStackCommands(root *cobra.Command, mkCore func() *core.Core) {
 	root.AddCommand(newDownCmd(mkCore()))
 	root.AddCommand(newCheckoutCmd(mkCore()))
 	root.AddCommand(newCreateCmd(mkCore()))
+	root.AddCommand(newModifyCmd(mkCore()))
 }
