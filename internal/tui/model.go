@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/spinner"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dankoz/gt-stacks/internal/core"
@@ -14,19 +15,21 @@ import (
 )
 
 type model struct {
-	core     *core.Core
-	ctx      context.Context
-	stack    *state.Stack
-	current  string
-	err      error
-	width    int
-	height   int
-	quit     bool
-	branches []string // flattened, in display order
-	cursor   int
-	op       string // "" | "submit" | "restack" | "sync"
-	opMsg    string
-	spinner  spinner.Model
+	core      *core.Core
+	ctx       context.Context
+	stack     *state.Stack
+	current   string
+	err       error
+	width     int
+	height    int
+	quit      bool
+	branches  []string // flattened, in display order
+	cursor    int
+	op        string // "" | "submit" | "restack" | "sync"
+	opMsg     string
+	spinner   spinner.Model
+	prompting bool
+	input     textinput.Model
 }
 
 type stackLoaded struct {
@@ -97,6 +100,27 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.spinner, cmd = m.spinner.Update(msg)
 		return m, cmd
 	case tea.KeyMsg:
+		if m.prompting {
+			switch msg.String() {
+			case "esc":
+				m.prompting = false
+				m.input.Reset()
+				return m, nil
+			case "enter":
+				name := strings.TrimSpace(m.input.Value())
+				m.prompting = false
+				m.input.Reset()
+				if name == "" {
+					return m, nil
+				}
+				m.op = "create"
+				m.opMsg = ""
+				return m, runCreate(m.ctx, m.core, name)
+			}
+			var cmd tea.Cmd
+			m.input, cmd = m.input.Update(msg)
+			return m, cmd
+		}
 		if m.op != "" {
 			// While an op is running, only allow quit.
 			if msg.String() == "q" || msg.String() == "ctrl+c" {
@@ -138,6 +162,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.op = "sync"
 			m.opMsg = ""
 			return m, runSync(m.ctx, m.core)
+		case "c":
+			m.prompting = true
+			m.input = newBranchInput()
+			return m, textinput.Blink
 		}
 	}
 	return m, nil
@@ -150,6 +178,9 @@ var border = lipgloss.NewStyle().
 func (m model) View() string {
 	if m.err != nil {
 		return border.Render(fmt.Sprintf("error: %v\n\nq quit", m.err))
+	}
+	if m.prompting {
+		return border.Render("new branch name:\n\n" + m.input.View() + "\n\n[enter] create  [esc] cancel")
 	}
 	if m.op != "" {
 		body := m.spinner.View() + " " + m.op + "…"

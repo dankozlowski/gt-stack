@@ -52,6 +52,15 @@ func runSync(ctx context.Context, c *core.Core) tea.Cmd {
 	}
 }
 
+func runCreate(ctx context.Context, c *core.Core, name string) tea.Cmd {
+	return func() tea.Msg {
+		if err := c.Create(ctx, name, ""); err != nil {
+			return opFinished{name: "create", err: err}
+		}
+		return opFinished{name: "create", summary: "created " + name}
+	}
+}
+
 func newSpinner() spinner.Model {
 	sp := spinner.New()
 	sp.Spinner = spinner.Dot
