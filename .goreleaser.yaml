@@ -24,13 +24,13 @@ archives:
       {{- .Version }}_
       {{- .Os }}_
       {{- .Arch }}
-    format: tar.gz
+    formats: [tar.gz]
 
 checksum:
   name_template: "checksums.txt"
 
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  version_template: "{{ incpatch .Version }}-next"
 
 changelog:
   sort: asc
@@ -40,14 +40,23 @@ changelog:
       - '^test:'
       - '^chore:'
 
-brews:
-  - repository:
-      owner: dankoz
-      name: homebrew-gts
-    homepage: https://github.com/dankoz/gt-stacks
-    description: A Graphite-style CLI for managing stacked git PRs
-    license: MIT
-    test: |
-      system "#{bin}/gts version"
-    install: |
-      bin.install "gts"
+# Homebrew tap publishing is disabled until the tap repo exists and the
+# HOMEBREW_TAP_TOKEN secret is set.
+#
+# To enable:
+#   1. Create the tap repo (e.g. dankozlowski/homebrew-gts) on GitHub.
+#   2. Generate a PAT with contents:write on that repo.
+#   3. Add the PAT as the HOMEBREW_TAP_TOKEN secret on this repo.
+#   4. Uncomment the block below (correcting the owner if different).
+#
+# brews:
+#   - repository:
+#       owner: dankozlowski
+#       name: homebrew-gts
+#     homepage: https://github.com/dankozlowski/gt-stack
+#     description: A Graphite-style CLI for managing stacked git PRs
+#     license: MIT
+#     test: |
+#       system "#{bin}/gts version"
+#     install: |
+#       bin.install "gts"
