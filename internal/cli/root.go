@@ -1,6 +1,11 @@
 package cli
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/dankoz/gt-stacks/internal/core"
+	"github.com/dankoz/gt-stacks/internal/gh"
+	"github.com/dankoz/gt-stacks/internal/git"
+	"github.com/spf13/cobra"
+)
 
 func NewRootCmd(version, commit, goVersion string) *cobra.Command {
 	root := &cobra.Command{
@@ -10,5 +15,15 @@ func NewRootCmd(version, commit, goVersion string) *cobra.Command {
 		SilenceErrors: true,
 	}
 	root.AddCommand(newVersionCmd(version, commit, goVersion))
+
+	// Lazy core: real runners only constructed when a subcommand actually runs.
+	mkCore := func() *core.Core {
+		return core.New(git.New(git.NewExecRunner(".")), gh.New(gh.NewExecRunner()))
+	}
+	addStackCommands(root, mkCore)
 	return root
+}
+
+func addStackCommands(root *cobra.Command, mkCore func() *core.Core) {
+	root.AddCommand(newTrunkCmd(mkCore()))
 }
