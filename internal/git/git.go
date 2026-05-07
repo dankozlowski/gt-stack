@@ -82,3 +82,60 @@ func (g *Git) MergeBase(ctx context.Context, a, b string) (string, error) {
 	}
 	return strings.TrimSpace(string(out)), nil
 }
+
+func (g *Git) ConfigSet(ctx context.Context, key, value string) error {
+	_, _, err := g.r.Run(ctx, "config", "--local", key, value)
+	return err
+}
+
+func (g *Git) ConfigUnset(ctx context.Context, key string) error {
+	_, _, err := g.r.Run(ctx, "config", "--local", "--unset", key)
+	return err
+}
+
+func (g *Git) Checkout(ctx context.Context, branch string) error {
+	_, _, err := g.r.Run(ctx, "checkout", branch)
+	return err
+}
+
+func (g *Git) BranchCreate(ctx context.Context, name, startPoint string) error {
+	_, _, err := g.r.Run(ctx, "checkout", "-b", name, startPoint)
+	return err
+}
+
+func (g *Git) BranchDelete(ctx context.Context, name string) error {
+	_, _, err := g.r.Run(ctx, "branch", "-D", name)
+	return err
+}
+
+// RebaseOnto runs: git rebase --onto <newParent> <oldParent> <branch>
+// Used when a branch's parent has moved (e.g. after parent was amended).
+func (g *Git) RebaseOnto(ctx context.Context, newParent, oldParent, branch string) error {
+	_, _, err := g.r.Run(ctx, "rebase", "--onto", newParent, oldParent, branch)
+	return err
+}
+
+func (g *Git) RebaseContinue(ctx context.Context) error {
+	_, _, err := g.r.Run(ctx, "rebase", "--continue")
+	return err
+}
+
+func (g *Git) RebaseAbort(ctx context.Context) error {
+	_, _, err := g.r.Run(ctx, "rebase", "--abort")
+	return err
+}
+
+func (g *Git) CommitAll(ctx context.Context, message string) error {
+	_, _, err := g.r.Run(ctx, "commit", "-a", "-m", message)
+	return err
+}
+
+func (g *Git) AmendNoEdit(ctx context.Context) error {
+	_, _, err := g.r.Run(ctx, "commit", "--amend", "--no-edit")
+	return err
+}
+
+func (g *Git) Fetch(ctx context.Context, remote string) error {
+	_, _, err := g.r.Run(ctx, "fetch", remote, "--prune")
+	return err
+}

@@ -64,3 +64,30 @@ func TestConfigGet_Missing(t *testing.T) {
 		t.Errorf("got %q, want empty string for missing key", got)
 	}
 }
+
+func TestConfigSet_RecordsArgs(t *testing.T) {
+	fr := &FakeRunner{
+		Responses: map[string]FakeResponse{
+			"config --local branch.feat.gts-parent main": {},
+		},
+	}
+	g := New(fr)
+	if err := g.ConfigSet(context.Background(), "branch.feat.gts-parent", "main"); err != nil {
+		t.Fatalf("ConfigSet: %v", err)
+	}
+	if len(fr.Calls) != 1 {
+		t.Fatalf("want 1 call, got %d", len(fr.Calls))
+	}
+}
+
+func TestRebaseOnto_ArgOrder(t *testing.T) {
+	fr := &FakeRunner{
+		Responses: map[string]FakeResponse{
+			"rebase --onto main old-parent feat/x": {},
+		},
+	}
+	g := New(fr)
+	if err := g.RebaseOnto(context.Background(), "main", "old-parent", "feat/x"); err != nil {
+		t.Fatalf("RebaseOnto: %v", err)
+	}
+}
