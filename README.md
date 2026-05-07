@@ -1,4 +1,4 @@
-# gts
+# gt-stack
 
 A Graphite-style CLI for managing stacked git pull requests, plus a playful TUI. Wraps `git` and `gh` — no GitHub token to manage, no daemon, no remote service.
 
