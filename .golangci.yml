@@ -1,0 +1,17 @@
+run:
+  timeout: 3m
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gosimple
+    - revive
+    - gofmt
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
