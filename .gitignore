@@ -1,0 +1,7 @@
+/dist/
+/gts
+*.test
+*.out
+.DS_Store
+.idea/
+.vscode/
