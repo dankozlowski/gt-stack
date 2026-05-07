@@ -30,4 +30,7 @@ func addStackCommands(root *cobra.Command, mkCore func() *core.Core) {
 	root.AddCommand(newUntrackCmd(mkCore()))
 	root.AddCommand(newLogCmd(mkCore()))
 	root.AddCommand(newStatusCmd(mkCore()))
+	root.AddCommand(newUpCmd(mkCore()))
+	root.AddCommand(newDownCmd(mkCore()))
+	root.AddCommand(newCheckoutCmd(mkCore()))
 }
