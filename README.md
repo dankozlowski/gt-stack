@@ -3,15 +3,15 @@
 A Graphite-style CLI for managing stacked git pull requests, plus a playful TUI. Wraps `git` and `gh` — no GitHub token to manage, no daemon, no remote service.
 
 ```
-┌─ gts ─ myrepo · main ──────────────────────────────────┐
+┌─ gts ─ myrepo · main ──────────────────────────────────-┐
 │   main                                                  │
 │   ├─● feat/auth-1     #4520   ✓ merged                  │
 │   └─● feat/auth-2     #4521   ✓ approved                │
 │     └─▶ feat/auth-3   #4522   ○ in review     ← here    │
 │       └─○ feat/oauth  (no PR yet)                       │
-│                                                          │
-│  [↑↓] nav  [⏎] checkout  [s] submit  [r] restack  [q]  │
-└──────────────────────────────────────────────────────────┘
+│                                                         │
+│  [↑↓] nav  [⏎] checkout  [s] submit  [r] restack  [q]   │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ## Features
