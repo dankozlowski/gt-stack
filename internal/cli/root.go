@@ -38,4 +38,5 @@ func addStackCommands(root *cobra.Command, mkCore func() *core.Core) {
 	root.AddCommand(newRestackCmd(mkCore()))
 	root.AddCommand(newContinueCmd(mkCore()))
 	root.AddCommand(newSyncCmd(mkCore()))
+	root.AddCommand(newSubmitCmd(mkCore()))
 }
