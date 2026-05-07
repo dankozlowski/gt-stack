@@ -29,4 +29,5 @@ func addStackCommands(root *cobra.Command, mkCore func() *core.Core) {
 	root.AddCommand(newTrackCmd(mkCore()))
 	root.AddCommand(newUntrackCmd(mkCore()))
 	root.AddCommand(newLogCmd(mkCore()))
+	root.AddCommand(newStatusCmd(mkCore()))
 }
