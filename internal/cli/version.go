@@ -1,0 +1,19 @@
+package cli
+
+import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+)
+
+func newVersionCmd(version, commit, goVersion string) *cobra.Command {
+	return &cobra.Command{
+		Use:   "version",
+		Short: "Print version information",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			_, err := fmt.Fprintf(cmd.OutOrStdout(),
+				"gts %s (%s, %s)\n", version, commit, goVersion)
+			return err
+		},
+	}
+}
